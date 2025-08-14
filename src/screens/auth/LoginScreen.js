@@ -1,62 +1,47 @@
-//loginscreen.js
 import React, { useState } from 'react';
-import {
-    View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert
-} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../../../firebaseConfig'; // Corrected import
 
-export default function LoginScreen({ navigation, onLogin }) {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+export default function LoginScreen({ navigation }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-    const handleLogin = async () => {
-        const users = JSON.parse(await AsyncStorage.getItem('users')) || [];
-        const user = users.find(u => u.email === email && u.password === password);
-        if (user) {
-            onLogin(user);
-        } else {
-            Alert.alert('Login Failed', 'Invalid email or password.');
-        }
-    };
+  const handleLogin = async () => {
+    if (!email || !password) {
+        Alert.alert('Error', 'Please enter both email and password.');
+        return;
+    }
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // onAuthStateChanged in App.js will handle navigation
+    } catch (error) {
+      Alert.alert('Login Failed', 'Invalid email or password.');
+      console.error(error);
+    }
+  };
 
-    return (
-        <View style={styles.container}>
-            <Image source={require('../../../assets/logo.png')} style={styles.logo} />
-            <Text style={styles.title}>FairRide Koronadal</Text>
-
-            <TextInput
-                placeholder="Email"
-                placeholderTextColor="#999"
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-            />
-            <TextInput
-                placeholder="Password"
-                placeholderTextColor="#999"
-                style={styles.input}
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
-            />
-            <TouchableOpacity style={styles.button} onPress={handleLogin}>
-                <Text style={styles.buttonText}>Login</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                <Text style={styles.link}>Don't have an account? Register</Text>
-            </TouchableOpacity>
-        </View>
-    );
+  return (
+    <View style={styles.container}>
+      {/* Your UI components (Image, TextInput, TouchableOpacity) go here */}
+      <Text>Login Screen</Text>
+      <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={styles.input} />
+      <TextInput placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
+      <TouchableOpacity onPress={handleLogin} style={styles.button}>
+        <Text style={styles.buttonText}>Login</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+        <Text style={styles.linkText}>Don't have an account? Register</Text>
+      </TouchableOpacity>
+    </View>
+  );
 }
 
+// Add your styles here
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, justifyContent: 'center', backgroundColor: '#fff' },
-  logo: { width: 500, height: 150, alignSelf: 'center', marginBottom: 20 },
-  title: { textAlign: 'center', fontSize: 22, fontWeight: 'bold', color: 'black', marginBottom: 20 },
-  input: { borderWidth: 1, borderColor: 'black', borderRadius: 8, padding: 10, marginBottom: 16, color: 'black' },
-  button: { backgroundColor: '#E6F5E6', padding: 14, borderRadius: 10, alignItems: 'center', borderColor: 'black', borderWidth: 1 },
-  buttonText: { color: 'black', fontWeight: 'bold', fontSize: 16 },
-  link: { color: 'black', textAlign: 'center', marginTop: 20 }
+    container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+    input: { width: '100%', height: 40, borderColor: 'gray', borderWidth: 1, marginBottom: 10, paddingHorizontal: 10 },
+    button: { backgroundColor: 'green', padding: 10, borderRadius: 5 },
+    buttonText: { color: 'white', textAlign: 'center' },
+    linkText: { color: 'blue', marginTop: 15 }
 });
-
